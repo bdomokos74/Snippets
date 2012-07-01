@@ -1,0 +1,28 @@
+graph G {
+	overlap="false";
+//	Iasi [style="filled"];
+//	Oradea [color="grey"];
+	Oradea -- Zerind [label = "71", color="grey"];
+	Oradea -- Sibiu [label = "151"];
+	Zerind -- Arad [label = "75"];
+	Arad -- Sibiu [label = "140"];
+	Arad -- Timisoara [label="118"];
+	Timisoara -- Lugoj  [label="111"];
+	Lugoj -- Mehadia  [label="75"];
+	Mehadia -- Drobeta  [label="70"];
+	Drobeta -- Craiova  [label="120"];
+	Sibiu -- RimnicuVilcea  [label="80"];
+	Sibiu -- Fagaras  [label="99"];
+	RimnicuVilcea  -- Pitesti [label="97"];
+	RimnicuVilcea  -- Craiova [label="146", len=2];
+	Pitesti  -- Craiova [label="138"];
+	Fagaras -- Bucharest [label="211"];
+	Pitesti -- Bucharest [label="101"];
+	Bucharest -- Giurgiu [label="90"];
+	Bucharest -- Urzicheni [label="85"];
+	Urzicheni -- Hirsova [label="98"];
+	Hirsova -- Eforie [label="86"];
+	Urzicheni -- Vaslui [label="142", color="grey", style="dashed"];
+	Vaslui -- Iasi [label="92"];
+	Iasi -- Neamt [label="87"];
+}
