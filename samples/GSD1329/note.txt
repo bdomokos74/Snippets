@@ -1,0 +1,5 @@
+http://www.ncbi.nlm.nih.gov/sites/GDSbrowser?acc=GDS1329
+
+data:
+ftp://ftp.ncbi.nlm.nih.gov/pub/geo/DATA/supplementary/series/GSE1561/GSE1561_RAW.tar
+
