@@ -49,7 +49,7 @@ result = ""
 ff.each_entry do |f|
 	id = f.definition
 	idx = id.index(" ")
-	id = id[0..(idx-1)]
+	id = id[0..(idx-1)] unless idx.nil?
 
 	if id==contig
 		seq = f.naseq
