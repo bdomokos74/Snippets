@@ -8,12 +8,15 @@ line_size=70
 
 options = {}
 optparse = OptionParser.new do |opts|
-    opts.banner="Usage: fasta_grep.rb [-c] [-v] [-f pattern_file]|[pattern] fasta_file"
+    opts.banner="Usage: fasta_grep.rb [-c] [-v] [-r] [-f pattern_file]|[pattern] fasta_file"
     opts.on('-f', '--file FILE', 'pattern file (one per line, exact match for contig id)') do |file|
         options[:pattern_file] = file
     end
     opts.on('-c', '--count', 'count matches') do
         options[:count] = true
+    end
+    opts.on('-r', '--revcomp', 'reverse complement results') do
+        options[:revcomp] = true
     end
     opts.on('-v', '--verbose', 'print verbose information') do
         options[:verbose] = true
@@ -49,8 +52,9 @@ ff = Bio::FlatFile.new(Bio::FastaFormat, fasta_file)
 cnt = 0
 ff.each_entry do |f|
     id = f.definition
+    contig = id
     first_space_pos = id.index(" ")
-    contig = id[0..(first_space_pos-1)]
+    contig = id[0..(first_space_pos-1)] unless first_space_pos.nil?
 
     if options[:pattern_file]
         next unless contig_hash.member?(contig)
@@ -60,7 +64,8 @@ ff.each_entry do |f|
 
     cnt += 1
     seq = f.naseq
-
+    seq = seq.reverse_complement.upcase if options[:revcomp] and not options[:count]
+    
     curr = 0
     len = seq.size
 
