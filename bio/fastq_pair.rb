@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 
-# Clip n nucleotides from the beginning of each read
+# Sort two fastq files of a paired sequencing: take the 1st one as the reference order, and output both with matching ids 
+# of the first file. Output statistics of the result.
 
 require 'optparse'
 require 'yaml'
@@ -110,18 +111,25 @@ class FastqRead
     ret
   end
   
+  def get_key
+    ind = @id.index(" ")
+    @id[0..(ind-1)]
+  end
 end
 
 ##############################
 
 options = {}
 optparse = OptionParser.new do |opts|
-    opts.banner="Usage: fastq_clip.rb -f <fastq file> -n <number of nucleotides to clip>"
-    opts.on('-f', '--fastq FILE', 'fastq file to clip') do |file|
-        options[:fastq] = file
+    opts.banner="Usage: fastq_sort.rb -1 <fastq file 1> -2 <fastq file 2> -p <output prefix>"
+    opts.on('-1', '--fastq1 FILE', 'fastq file 1 to clip') do |file|
+        options[:fastq1] = file
     end
-    opts.on('-n', '--num NUMBER', 'number of nucleotides to clip from the beginning') do |number|
-        options[:number] = number.to_i
+    opts.on('-2', '--fastq2 FILE', 'fastq file 2 to clip') do |file|
+        options[:fastq2] = file
+    end
+    opts.on('-p', '--prefix PREFIX', 'output prefix') do |prefix|
+        options[:prefix] = prefix
     end
     opts.on( '-h', '--help', 'display this screen' ) do
         puts opts
@@ -131,36 +139,61 @@ end
 
 optparse.parse!
 
-if not options[:fastq] or not options[:number]
+if not options[:fastq1] or not options[:fastq2] or not options[:prefix] or not File.exist?(options[:fastq1]) or not File.exist?(options[:fastq2])
     puts optparse.help
     exit
 end
+out1_str = options[:prefix]+"_1.fastq"
+out2_str = options[:prefix]+"_2.fastq"
+if File.exist?(out1_str) or File.exist?(out2_str)
+  puts "Output files already exist, delete them manually or specify a nonexistent file."
+  puts optparse.help
+  exit
+end
 
-fastq = nil
-if options[:fastq].end_with?(".gz")
-  fastq = Zlib::GzipReader.new(File.open(options[:fastq]))
+fastq1 = nil
+if options[:fastq1].end_with?(".gz")
+  fastq1 = Zlib::GzipReader.new(File.open(options[:fastq1]))
 else
-  fastq = File.open(options[:fastq], "r")
+  fastq1 = File.open(options[:fastq1], "r")
+end
+fastq2 = nil
+if options[:fastq2].end_with?(".gz")
+  fastq2 = Zlib::GzipReader.new(File.open(options[:fastq2]))
+else
+  fastq2 = File.open(options[:fastq2], "r")
 end
 
-orig_len = 0
-clipped_len = 0
-r = FastqRead.parseRead(fastq)
-stats = Hash.new { |h, k| h[k] = 0 }
-until r.nil?
-  orig_len += r.length
-  clipseq = r.clip_from_start(options[:number])
-  clipped_len += r.length
-  stats[clipseq] += 1
-  puts r
-  r = FastqRead.parseRead(fastq)
+r1_sum = 0
+r2_sum = 0
+common_sum = 0
+$stderr.puts "Building hash table..."
+read_hash = Hash.new
+r2 = FastqRead.parseRead(fastq2)
+until r2.nil?
+  read_hash[r2.get_key] = r2
+  r2_sum+=1
+  r2 = FastqRead.parseRead(fastq2)
 end
-fastq.close()
+$stderr.puts "Done."
 
-log = File.open("fastq_clip.log", "a")
-log.puts "### #{options[:fastq]}, orig len=#{orig_len}, clipped len=#{clipped_len}, sequence distribution:"
-log.puts stats.to_yaml
-log.close
+output1 = File.new(out1_str, "w")
+output2 = File.new(out2_str, "w")
+r1 = FastqRead.parseRead(fastq1)
+until r1.nil?
+  r1_sum += 1
+  r2 = read_hash[r1.get_key]
+  if not r2.nil?
+    common_sum += 1
+    output1.puts(r1.to_s)
+    output2.puts(r2.to_s)
+  end
+  r1 = FastqRead.parseRead(fastq1)
+end
+output1.close
+output2.close
+
+$stderr.puts "#read1: #{r1_sum}\n#read2: #{r2_sum}\n#matching: #{common_sum}"
 
 
 
