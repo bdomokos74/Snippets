@@ -1,3 +1,7 @@
 data/
 *~
-
+experimenting/
+.idea/
+*.iml
+.DS_Store
+out/
