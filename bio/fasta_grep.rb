@@ -8,7 +8,7 @@ line_size=70
 
 options = {}
 optparse = OptionParser.new do |opts|
-    opts.banner="Usage: fasta_grep.rb [-c] [-v] [-r] [-f pattern_file]|[pattern] fasta_file"
+    opts.banner="Usage: fasta_grep.rb [-c] [-v] [-r] [-o] [-f pattern_file]|[pattern] fasta_file"
     opts.on('-f', '--file FILE', 'pattern file (one per line, exact match for contig id)') do |file|
         options[:pattern_file] = file
     end
@@ -17,6 +17,9 @@ optparse = OptionParser.new do |opts|
     end
     opts.on('-r', '--revcomp', 'reverse complement results') do
         options[:revcomp] = true
+    end
+    opts.on('-o', '--one-line', 'seq in one line') do
+      options[:oneline] = true
     end
     opts.on('-v', '--verbose', 'print verbose information') do
         options[:verbose] = true
@@ -71,9 +74,13 @@ ff.each_entry do |f|
 
     if not options[:count]
         puts ">#{id}"
-        while curr < len
-            puts "#{seq[curr..(curr+line_size-1)].upcase}" 
-            curr += line_size
+        if options[:oneline]
+          puts seq.upcase
+        else
+          while curr < len
+              puts "#{seq[curr..(curr+line_size-1)].upcase}"
+              curr += line_size
+          end
         end
     elsif options[:verbose]
         puts "#{contig},#{len}"
