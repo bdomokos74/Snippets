@@ -145,7 +145,8 @@ if not options[:fastq1] or not options[:fastq2] or not options[:prefix] or not F
 end
 out1_str = options[:prefix]+"_1.fastq"
 out2_str = options[:prefix]+"_2.fastq"
-if File.exist?(out1_str) or File.exist?(out2_str)
+out_single_str = options[:prefix]+"_singleton.fastq"
+if File.exist?(out1_str) or File.exist?(out2_str) or File.exist?(out_single_str)
   puts "Output files already exist, delete them manually or specify a nonexistent file."
   puts optparse.help
   exit
@@ -167,33 +168,54 @@ end
 r1_sum = 0
 r2_sum = 0
 common_sum = 0
+single_sum = 0
 $stderr.puts "Building hash table..."
-read_hash = Hash.new
+read1_hash = Hash.new
+read2_hash = Hash.new
 r2 = FastqRead.parseRead(fastq2)
 until r2.nil?
-  read_hash[r2.get_key] = r2
+  read2_hash[r2.get_key] = r2
   r2_sum+=1
   r2 = FastqRead.parseRead(fastq2)
 end
 $stderr.puts "Done."
 
+$stderr.puts "Reading fastq1."
 output1 = File.new(out1_str, "w")
 output2 = File.new(out2_str, "w")
+output_single = File.new(out_single_str, "w")
 r1 = FastqRead.parseRead(fastq1)
 until r1.nil?
+  read1_hash[r1.get_key] = r1
   r1_sum += 1
-  r2 = read_hash[r1.get_key]
+  r2 = read2_hash[r1.get_key]
   if not r2.nil?
     common_sum += 1
     output1.puts(r1.to_s)
     output2.puts(r2.to_s)
+  else
+    single_sum += 1
+    output_single.puts(r1.to_s)
   end
   r1 = FastqRead.parseRead(fastq1)
 end
+$stderr.puts "Done."
+
+$stderr.puts "Scanning fastq2 ids."
+read2_hash.each do |k, v|
+    r = read1_hash[k]
+    if r.nil?
+        single_sum += 1
+        output_single.puts(v.to_s)
+    end        
+end
+$stderr.puts "Done."
+
 output1.close
 output2.close
+output_single.close
 
-$stderr.puts "#read1: #{r1_sum}\n#read2: #{r2_sum}\n#matching: #{common_sum}"
+$stderr.puts "#all read1: #{r1_sum}\n#all read2: #{r2_sum}\n#matching: #{common_sum}\n#single: #{single_sum}"
 
 
 
