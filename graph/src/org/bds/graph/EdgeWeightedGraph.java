@@ -66,15 +66,15 @@ public class EdgeWeightedGraph {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append(V).append(" vertices, ").append(E).append(" edges\n");
-        for (int v = 0; v < V; v++) {
-            sb.append(v).append(": ");
-            for (Edge e : adj(v)) {
-                sb.append("[").append(e).append("] ");
+            sb.append(V).append(" vertices, ").append(E).append(" edges\n");
+            for (int v = 0; v < V; v++) {
+                sb.append(v).append(": ");
+                for (Edge e : adj(v)) {
+                    sb.append("[").append(e).append("] ");
+                }
+                sb.append("\n");
             }
-            sb.append("\n");
-        }
-        return sb.toString();
+            return sb.toString();
     }
 }
 
