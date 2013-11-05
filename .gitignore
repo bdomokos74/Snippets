@@ -5,3 +5,4 @@ experimenting/
 *.iml
 .DS_Store
 out/
+*.pyc
